@@ -2,13 +2,9 @@ package kamilkacprzak.rss4u;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Color;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.view.Gravity;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -19,13 +15,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static android.view.Menu.NONE;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    String title = "",
+    private String title = "",
             url = "";
+    private Menu menu;
+    private SharedPreferences itemsId_strInt ;
+    private SharedPreferences urlForTitle_strStr;
+    private SharedPreferences.Editor editItems, editUrl;
+    private int id = 100;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +48,25 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        itemsId_strInt = this.getSharedPreferences("itemsId_strInt",0);
+        editItems = itemsId_strInt.edit();
+        urlForTitle_strStr = this.getSharedPreferences("urlForTitle_strStr",0);
+        editUrl = urlForTitle_strStr.edit();
+
+        menu = navigationView.getMenu();
+        menu.add(NONE, 100, NONE, "Add a Feed");
+        id += 1;
+        menu.add("Your Feeds");
+
+        Map<String, ?> allEntries = itemsId_strInt.getAll();
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+                id = Integer.parseInt(entry.getValue().toString());
+                menu.add(11, id,10000- id, entry.getKey());
+
+        }
+        id += 1;
+
     }
 
     @Override
@@ -82,8 +107,10 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_add) {
+        if (id == 100) {
             showAddFeedDialog(MainActivity.this);
+
+            // TODO: here adding feeds
 
             title = "";
             url = "";
@@ -115,8 +142,13 @@ public class MainActivity extends AppCompatActivity
                         title = String.valueOf(feedEditText.getText());
                         url = String.valueOf(urlEditText.getText());
                         if(title.isEmpty() || url.isEmpty()){
-                            AlertDialog ad = new AlertDialog.Builder(inC).setMessage("You have to enter title and url!").setPositiveButton("Ok",null).create();
+                            AlertDialog ad = new AlertDialog.Builder(inC).setMessage("You have to enter a title and url!").setPositiveButton("Ok",null).create();
                             ad.show();
+                        }else if ( itemsId_strInt.getInt(title,0) != 0){
+                            AlertDialog ad = new AlertDialog.Builder(inC).setMessage("This title already exists, pick another one!").setPositiveButton("Ok",null).create();
+                            ad.show();
+                        }else{
+                            addNewTitle(title,url);
                         }
                     }
                 })
@@ -124,5 +156,14 @@ public class MainActivity extends AppCompatActivity
                 .create();
 
         dialog.show();
+    }
+
+    private void addNewTitle(String title, String url){
+            editItems.putInt(title,id);
+            menu.add(11,id,10000 - id,title);
+            editUrl.putString(title,url);
+            id +=1;
+            editItems.commit();
+            editUrl.commit();
     }
 }
