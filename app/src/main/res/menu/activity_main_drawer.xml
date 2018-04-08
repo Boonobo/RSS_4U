@@ -9,7 +9,8 @@
             android:title="Add feed" />
     </group>
 
-    <item android:title="Your feeds">
+    <item android:title="Your feeds"
+          android:id="@+id/nav_your_feeds">
 
     </item>
 
