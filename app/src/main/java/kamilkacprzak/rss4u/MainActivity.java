@@ -41,19 +41,31 @@ public class MainActivity extends AppCompatActivity
 
     private String  mTitle = "",
                     mUrl = "";
-    private Menu mMenu;
-    private SharedPreferences mItemsId_strInt;
-    private SharedPreferences mUrlForTitle_strStr;
-    private SharedPreferences.Editor mEditItems, mEditUrl;
-    private int mId = 100;
+    private int     mId = 100;
+    private Menu    mMenu;
 
-    private RecyclerView mRecyclerView;
+    private SharedPreferences   mItemsId_strInt,
+                                mUrlForTitle_strStr;
+    private SharedPreferences.Editor    mEditItems,
+                                        mEditUrl;
+
+    private RecyclerView       mRecyclerView;
     private SwipeRefreshLayout mSwipeLayout;
-    private String mUrlLink;
+    private String             mUrlLink;
     private List<RssFeedModel> mFeedModelList;
-    private String mFeedTitle;
-    private String mFeedLink;
-    private String mFeedDescription;
+
+    public class RssFeedModel {
+
+        public String title;
+        public String link;
+        public String description;
+
+        public RssFeedModel(String title, String link, String description) {
+            this.title = title;
+            this.link = link;
+            this.description = description;
+        }
+    }
 
 
     @Override
@@ -72,6 +84,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        //Assigning view for feeds and refreshing
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -83,7 +96,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-
+        //Creating drawer menu based on shared preferences
         mItemsId_strInt = this.getSharedPreferences("mItemsId_strInt",0);
         mEditItems = mItemsId_strInt.edit();
         mUrlForTitle_strStr = this.getSharedPreferences("mUrlForTitle_strStr",0);
@@ -91,20 +104,17 @@ public class MainActivity extends AppCompatActivity
 
         mMenu = navigationView.getMenu();
         mMenu.add(NONE, 100, NONE, "Add a Feed");
-        mId += 1;
+        mId++;
         mMenu.add("Your Feeds").setEnabled(false);
-//        MenuItem item = (MenuItem) findViewById(R.id.nav_your_feeds);
-//        SpannableString s = new SpannableString("Your feeds");
-//        s.setSpan(new ForegroundColorSpan(Color.parseColor("#FF7500")),0,s.length(),0);
-//        item.setTitle(s);
 
         Map<String, ?> allEntries = mItemsId_strInt.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
                 mId = Integer.parseInt(entry.getValue().toString());
+                // (10000 - mId) - making order of menu items from highest ID's to lowest
                 mMenu.add(11, mId,10000- mId, entry.getKey());
 
         }
-        mId += 1;
+        mId++;
 
     }
 
@@ -120,7 +130,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the mMenu; this adds items to the action bar if it is present.
+        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
@@ -140,12 +150,13 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         String title = item.getTitle().toString();
+        // Add Feed - Showing alert dialog to enter data and clear fields afterwards
+        // else if - fetching feed for selected item from menu
         if (id == 100) {
             showAddFeedDialog(MainActivity.this);
             mTitle = "";
@@ -167,7 +178,7 @@ public class MainActivity extends AppCompatActivity
         LinearLayout layout = new LinearLayout(c);
 
         layout.setOrientation(LinearLayout.VERTICAL);
-        feedEditText.setHint("Enter mTitle");
+        feedEditText.setHint("Enter Title");
         layout.addView(feedEditText);
         urlEditText.setHint("Enter URL");
         layout.addView(urlEditText);
@@ -181,31 +192,36 @@ public class MainActivity extends AppCompatActivity
                         mTitle = String.valueOf(feedEditText.getText());
                         mUrl = String.valueOf(urlEditText.getText());
                         if(mTitle.isEmpty() || mUrl.isEmpty()){
-                            AlertDialog ad = new AlertDialog.Builder(inC).setMessage("You have to enter a mTitle and mUrl!").setPositiveButton("Ok",null).create();
+                            AlertDialog ad = new AlertDialog.Builder(inC)
+                                                .setMessage("You have to enter a title and url!")
+                                                .setPositiveButton("Ok",null)
+                                                .create();
                             ad.show();
                         }else if ( mItemsId_strInt.getInt(mTitle,0) != 0){
-                            AlertDialog ad = new AlertDialog.Builder(inC).setMessage("This mTitle already exists, pick another one!").setPositiveButton("Ok",null).create();
+                            AlertDialog ad = new AlertDialog.Builder(inC)
+                                                .setMessage("This title already exists, pick another one!")
+                                                .setPositiveButton("Ok",null)
+                                                .create();
                             ad.show();
                         }else{
-                            addNewTitle(mTitle, mUrl);
+                            addNewFeedToMenu(mTitle, mUrl);
                         }
                     }
                 })
                 .setNegativeButton("Cancel", null)
                 .create();
-
         dialog.show();
     }
 
-    private void addNewTitle(String title, String url){
+    private void addNewFeedToMenu(String title, String url){
             mEditItems.putInt(title, mId);
             mMenu.add(11, mId,10000 - mId,title);
             mEditUrl.putString(title,url);
-            mId +=1;
+            mId++;
+
             mEditItems.commit();
             mEditUrl.commit();
     }
-
 
     private class FetchFeedTask extends AsyncTask<Void, Void, Boolean> {
 
@@ -241,12 +257,10 @@ public class MainActivity extends AppCompatActivity
             mSwipeLayout.setRefreshing(false);
 
             if (success) {
-
                 mRecyclerView.setAdapter(new RssFeedListAdapter(mFeedModelList));
             } else {
-                Toast.makeText(MainActivity.this,
-                        "Enter a valid Rss feed url",
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this,"Enter a valid Rss feed url",
+                               Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -263,19 +277,16 @@ public class MainActivity extends AppCompatActivity
             XmlPullParser xmlPullParser = Xml.newPullParser();
             xmlPullParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             xmlPullParser.setInput(inputStream, null);
-
             xmlPullParser.nextTag();
+
             while (xmlPullParser.next() != XmlPullParser.END_DOCUMENT) {
                 int eventType = xmlPullParser.getEventType();
-
                 String name = xmlPullParser.getName();
-                if(name == null)
-                    continue;
+
+                if(name == null) continue;
 
                 if(eventType == XmlPullParser.END_TAG) {
-                    if(name.equalsIgnoreCase("item")) {
-                        isItem = false;
-                    }
+                    if(name.equalsIgnoreCase("item")) isItem = false;
                     continue;
                 }
 
@@ -288,6 +299,7 @@ public class MainActivity extends AppCompatActivity
 
                 Log.d("MyXmlParser", "Parsing name ==> " + name);
                 String result = "";
+
                 if (xmlPullParser.next() == XmlPullParser.TEXT) {
                     result = xmlPullParser.getText();
                     xmlPullParser.nextTag();
@@ -301,15 +313,10 @@ public class MainActivity extends AppCompatActivity
                     description = result;
                 }
 
-                if (title != null && link != null && description != null ) {
+                if (title != null && link != null && description != null) {
                     if(isItem) {
                         RssFeedModel item = new RssFeedModel(title, link, description);
                         items.add(item);
-                    }
-                    else {
-                        mFeedTitle = title;
-                        mFeedLink = link;
-                        mFeedDescription = description;
                     }
 
                     title = null;
@@ -318,25 +325,9 @@ public class MainActivity extends AppCompatActivity
                     isItem = false;
                 }
             }
-
             return items;
         } finally {
             inputStream.close();
         }
     }
-
-    public class RssFeedModel {
-
-        public String title;
-        public String link;
-        public String description;
-
-        public RssFeedModel(String title, String link, String description) {
-            this.title = title;
-            this.link = link;
-            this.description = description;
-        }
-    }
-
-
 }
