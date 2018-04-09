@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private String  mTitle = "",
-                    mUrl = "";
+                    mUrlValue = "";
     private int     mId = 100;
     private Menu    mMenu;
 
@@ -51,7 +51,8 @@ public class MainActivity extends AppCompatActivity
 
     private RecyclerView       mRecyclerView;
     private SwipeRefreshLayout mSwipeLayout;
-    private String             mUrlLink;
+    private String             mUrlLink,
+                               mTitleMainAct;
     private List<RssFeedModel> mFeedModelList;
 
     public class RssFeedModel {
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity
             this.title = title;
             this.link = link;
             this.description = description;
+
         }
     }
 
@@ -160,9 +162,10 @@ public class MainActivity extends AppCompatActivity
         if (id == 100) {
             showAddFeedDialog(MainActivity.this);
             mTitle = "";
-            mUrl = "";
+            mUrlValue = "";
         }else if (mUrlForTitle_strStr.getString(title,"") != ""){
             mUrlLink =  mUrlForTitle_strStr.getString(title,"");
+            mTitleMainAct = item.getTitle().toString();
             new FetchFeedTask().execute((Void) null);
         }
 
@@ -190,8 +193,8 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mTitle = String.valueOf(feedEditText.getText());
-                        mUrl = String.valueOf(urlEditText.getText());
-                        if(mTitle.isEmpty() || mUrl.isEmpty()){
+                        mUrlValue = String.valueOf(urlEditText.getText());
+                        if(mTitle.isEmpty() || mUrlValue.isEmpty()){
                             AlertDialog ad = new AlertDialog.Builder(inC)
                                                 .setMessage("You have to enter a title and url!")
                                                 .setPositiveButton("Ok",null)
@@ -204,7 +207,7 @@ public class MainActivity extends AppCompatActivity
                                                 .create();
                             ad.show();
                         }else{
-                            addNewFeedToMenu(mTitle, mUrl);
+                            addNewFeedToMenu(mTitle, mUrlValue);
                         }
                     }
                 })
@@ -213,7 +216,7 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
     }
 
-    private void addNewFeedToMenu(String title, String url){
+    private boolean addNewFeedToMenu(String title, String url){
             mEditItems.putInt(title, mId);
             mMenu.add(11, mId,10000 - mId,title);
             mEditUrl.putString(title,url);
@@ -221,6 +224,7 @@ public class MainActivity extends AppCompatActivity
 
             mEditItems.commit();
             mEditUrl.commit();
+            return true;
     }
 
     private class FetchFeedTask extends AsyncTask<Void, Void, Boolean> {
@@ -258,6 +262,7 @@ public class MainActivity extends AppCompatActivity
 
             if (success) {
                 mRecyclerView.setAdapter(new RssFeedListAdapter(mFeedModelList));
+                MainActivity.this.setTitle(mTitleMainAct);
             } else {
                 Toast.makeText(MainActivity.this,"Enter a valid Rss feed url",
                                Toast.LENGTH_LONG).show();
@@ -294,6 +299,9 @@ public class MainActivity extends AppCompatActivity
                     if(name.equalsIgnoreCase("item")) {
                         isItem = true;
                         continue;
+                    }else if(name.equalsIgnoreCase("channel")){
+                        isItem = true;
+                        continue;
                     }
                 }
 
@@ -325,9 +333,16 @@ public class MainActivity extends AppCompatActivity
                     isItem = false;
                 }
             }
+
             return items;
         } finally {
             inputStream.close();
         }
     }
+    
+    //TODO: Description html parser
+    //TODO: Manage your feeds activity
+    //TODO: Settings Activity
+    //TODO: About us activity
+
 }

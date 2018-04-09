@@ -1,5 +1,7 @@
 package kamilkacprzak.rss4u;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,6 +43,13 @@ public class RssFeedListAdapter
         ((TextView)holder.rssFeedView.findViewById(R.id.descriptionText))
                 .setText(rssFeedModel.description);
         ((TextView)holder.rssFeedView.findViewById(R.id.linkText)).setText(rssFeedModel.link);
+        ((TextView)holder.rssFeedView.findViewById(R.id.linkText)).setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                String title = rssFeedModel.link;
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(title));
+                v.getContext().startActivity(browserIntent);
+            }
+        });
     }
 
     @Override
