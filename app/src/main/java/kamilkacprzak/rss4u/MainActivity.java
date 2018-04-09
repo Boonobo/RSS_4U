@@ -2,6 +2,7 @@ package kamilkacprzak.rss4u;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static android.text.Html.fromHtml;
 import static android.view.Menu.NONE;
 
 public class MainActivity extends AppCompatActivity
@@ -42,7 +45,7 @@ public class MainActivity extends AppCompatActivity
     private String  mTitle = "",
                     mUrlValue = "";
     private int     mId = 100;
-    private Menu    mMenu;
+    private static Menu    sMenu;
 
     private SharedPreferences   mItemsId_strInt,
                                 mUrlForTitle_strStr;
@@ -64,8 +67,7 @@ public class MainActivity extends AppCompatActivity
         public RssFeedModel(String title, String link, String description) {
             this.title = title;
             this.link = link;
-            this.description = description;
-
+            this.description = fromHtml(description).toString();
         }
     }
 
@@ -104,16 +106,18 @@ public class MainActivity extends AppCompatActivity
         mUrlForTitle_strStr = this.getSharedPreferences("mUrlForTitle_strStr",0);
         mEditUrl = mUrlForTitle_strStr.edit();
 
-        mMenu = navigationView.getMenu();
-        mMenu.add(NONE, 100, NONE, "Add a Feed");
+        sMenu = navigationView.getMenu();
+        sMenu.add(10, mId, NONE, "Add a Feed");
         mId++;
-        mMenu.add("Your Feeds").setEnabled(false);
+        sMenu.add(10,mId,NONE,"Manage Your Feeds");
+        mId++;
+        sMenu.add("Your Feeds").setEnabled(false);
 
         Map<String, ?> allEntries = mItemsId_strInt.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
                 mId = Integer.parseInt(entry.getValue().toString());
                 // (10000 - mId) - making order of menu items from highest ID's to lowest
-                mMenu.add(11, mId,10000- mId, entry.getKey());
+                sMenu.add(11, mId,10000- mId, entry.getKey());
 
         }
         mId++;
@@ -163,6 +167,9 @@ public class MainActivity extends AppCompatActivity
             showAddFeedDialog(MainActivity.this);
             mTitle = "";
             mUrlValue = "";
+        }else if(id == 101){
+            Intent intent = new Intent(this,ManageFeedsActivity.class);
+            startActivity(intent);
         }else if (mUrlForTitle_strStr.getString(title,"") != ""){
             mUrlLink =  mUrlForTitle_strStr.getString(title,"");
             mTitleMainAct = item.getTitle().toString();
@@ -218,7 +225,7 @@ public class MainActivity extends AppCompatActivity
 
     private boolean addNewFeedToMenu(String title, String url){
             mEditItems.putInt(title, mId);
-            mMenu.add(11, mId,10000 - mId,title);
+            sMenu.add(11, mId,10000 - mId,title);
             mEditUrl.putString(title,url);
             mId++;
 
@@ -339,10 +346,13 @@ public class MainActivity extends AppCompatActivity
             inputStream.close();
         }
     }
-    
-    //TODO: Description html parser
+
+    public static Menu getMenu(){
+        return sMenu;
+    }
     //TODO: Manage your feeds activity
     //TODO: Settings Activity
     //TODO: About us activity
+    // TODO: Paypal/reklamy????
 
 }
