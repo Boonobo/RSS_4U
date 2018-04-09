@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity
                 mRecyclerView.setAdapter(new RssFeedListAdapter(mFeedModelList));
                 MainActivity.this.setTitle(mTitleMainAct);
             } else {
-                Toast.makeText(MainActivity.this,"Enter a valid Rss feed url",
+                Toast.makeText(MainActivity.this,"Enter a valid Rss feed url or check your connection",
                                Toast.LENGTH_LONG).show();
             }
         }
