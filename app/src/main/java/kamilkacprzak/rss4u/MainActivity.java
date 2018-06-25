@@ -107,18 +107,18 @@ public class MainActivity extends AppCompatActivity
         mEditUrl = mUrlForTitle_strStr.edit();
 
         sMenu = navigationView.getMenu();
-        sMenu.add(10, mId, NONE, "Add a Feed");
+        sMenu.add(10, mId, NONE, "Open new feed");
         mId++;
-        sMenu.add(10,mId,NONE,"Manage Your Feeds");
-        mId++;
-        sMenu.add("Your Feeds").setEnabled(false);
+        sMenu.add("Your recent feeds").setEnabled(false);
 
         Map<String, ?> allEntries = mItemsId_strInt.getAll();
+        int feedCounter = 0;
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
                 mId = Integer.parseInt(entry.getValue().toString());
                 // (10000 - mId) - making order of menu items from highest ID's to lowest
                 sMenu.add(11, mId,10000- mId, entry.getKey());
-
+                feedCounter++;
+                if(feedCounter>19) break;
         }
         mId++;
 
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+       // getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
@@ -147,11 +147,6 @@ public class MainActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -167,9 +162,6 @@ public class MainActivity extends AppCompatActivity
             showAddFeedDialog(MainActivity.this);
             mTitle = "";
             mUrlValue = "";
-        }else if(id == 101){
-            Intent intent = new Intent(this,ManageFeedsActivity.class);
-            startActivity(intent);
         }else if (mUrlForTitle_strStr.getString(title,"") != ""){
             mUrlLink =  mUrlForTitle_strStr.getString(title,"");
             mTitleMainAct = item.getTitle().toString();

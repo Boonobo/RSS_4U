@@ -6,10 +6,10 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_add"
-            android:title="Add feed" />
+            android:title="Open new feed" />
     </group>
 
-    <item android:title="Your feeds"
+    <item android:title="Your recent feeds"
           android:id="@+id/nav_your_feeds">
 
     </item>
